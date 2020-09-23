@@ -17,8 +17,8 @@ jupyterhub:
         enabled: false
       secretToken: ''
       service:
-        ports:
-          nodePort: 8080
+        # ports:
+        #   nodePort: 8080
         type: ClusterIP
     singleuser:
       cmd: start-singleuser.sh
@@ -31,44 +31,12 @@ jupyterhub:
         name: illumidesk/base-notebook
         tag: latest
       cmd: start-singleuser.sh
-      storage:
-        static:
-          pvcName: ''
-          subPath: home/{username}
-        type: static
-      uid: 0
-    # singleuser:
-    #   image:
-    #     name: illumidesk/base-notebook:latest
-    #     tag: 2020.08.27
-    #   defaultUrl: "/tree"
-    # prePuller:
-    #   hook:
-    #     enabled: false
-    # # optimizations: see https://zero-to-jupyterhub.readthedocs.io/en/latest/optimization.html?highlight=scheduling#optimizations
-    # scheduling:
-    #   userScheduler:
-    #     enabled: true
-    #     replicas: 2
-    #   podPriority:
-    #     enabled: true
-    #   userPlaceholder:
-    #     enabled: true
-    #     replicas: 2
-    # traefik:
-    #   service:
-    #     # Not meant to be exposed to the public directly with this setup
-    #     type: ClusterIP
-awsAccessKey: ''
-awsSecretToken: ''
-clusterName: cluster
-clusterVPC: vpc-XXXXXXXXXXXXX
-awsRegion: us-east-2
-host: jhub.example.com
-subnets: subnet-XXXXXXXXXXXXX,subnet-XXXXXXXXXXXXX,subnet-XXXXXXXXXXXXX
-ingressTags: Environment=dev,Team=test
-domainFilter: example.com
-txtOwnerID: xxxxxx
-controllerName: alb-ingress-controller
-efs: fs-xxxxxx.amazon.aws.com
+
+albIngressController:
+  enabled: false
+allowExternalDNS: 
+  enabled: false
+allowEFS: 
+  enabled: false
+
 
