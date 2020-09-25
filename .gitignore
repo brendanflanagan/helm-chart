@@ -128,10 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# EKS and helm related 
-cluster/*.pub
-cluster/*.pem
-cluster/cluster-abhi.yaml
+# EKS related 
+cluster/*
 *.lock
-charts/
-test/
+test/*
+IAM/*
