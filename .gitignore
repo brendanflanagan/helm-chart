@@ -133,3 +133,4 @@ cluster/*
 *.lock
 test/*
 IAM/*
+TLDR.gif
