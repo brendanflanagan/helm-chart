@@ -2,134 +2,130 @@
 
 :warning: Draft Status :warning:
 
-## Overview
+# Overview
 
-Use this [helm chart](https://helm.sh/docs/topics/charts/) to install IllumiDesk on AWS EKS. This chart depends on the [jupyterhub](https://zero-to-jupyterhub.readthedocs.io/en/latest/).
+Use this [helm chart](https://helm.sh/docs/topics/charts/) to install IllumiDesk into your Cluster. This chart depends on the [jupyterhub](https://zero-to-jupyterhub.readthedocs.io/en/latest/).
 
 This setup pulls images defined in the `illumidesk/values.yaml` file from `DockerHub`. To push new versions of these images or to change the image's tag(s) (useful for testing), then follow the instructions in the [build images section](#build-images).  
 
-## Requirements
+## TL;DR
+     $ helm repo add illumidesk https://illumidesk.github.io/helm-chart/
+     $ helm repo update
+     $ helm upgrade --install $RELEASE illumidesk --namespace $NAMESPACE --values example-config/values.yaml
+
+![Load Balancer Example](https://illumidesk-storage.s3-us-west-2.amazonaws.com/TLDR.gif)
+
+## Prerequsites
 
 - [helm >= v3](https://github.com/kubernetes/helm)
-- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
-- [Amazon EKS vended KUBECTL](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html)
-- [EKSCTL](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html)
-- (Optional) [Docker](https://docs.docker.com/get-docker/)
-- (Optional) [Python 3.6+](https://www.python.org/downloads/)
+- [Kubectl >= 1.17](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+
   
-## Assumptions
+## Installing the chart
 
-1. Install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
-   * Steps
-     1. ```curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"```
-     2. ```sudo installer -pkg AWSCLIV2.pkg -target /```
-     3. Test the version: ```aws --version```
-        * AWS Cli version should be 2.0.46 or later
-2. Access Key has been setup 
-   * Steps
-     1. Login to aws console go to the IAM Service
-        * Services->IAM->Users
-     2. Select your username and click the security credentials tab
-     3. Click the **Create access key** and download the excel file consisting of your **AWS Access Key ID** and **AWS Secret Access Key**   
-3. A key pair has been created
-4. Install and configure [EKSCTL](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html) based on your OS 
-   * Verify it works: ```eksctl version```
-   * The output should show eksctl version 0.27.0
-5. Install and configure [Amazon EKS vended KUBECTL](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html) based on your OS 
-   *  Verify the Kubectl version
-      *  ```kubectl version --short --client```
-      *  The output should show an kubectl version is 1.17
-6. Install and configure [HELM 3](https://github.com/kubernetes/helm) based on your OS
-   * Verify it works: ```helm version --client --short```
-   * View existing charts: ```helm list```
-7. Create EFS System
-   1. Get the vpc using the following command
-       * ```aws eks describe-cluster --name cluster_name --query "cluster.resourcesVpcConfig.vpcId" --output text```
-   2. get the CIDR of VPC using this command
-       * ```aws ec2 describe-vpcs --vpc-ids vpc-XXXXXXXXXs --query "Vpcs[].CidrBlock" --output text```
-   3. In console or CLI create a file system EFS for your cluster vpc
-   4. Under once created add mount targets for the public cluster subnets for each availablity zone
-   5. For each mount target select the ```eks-cluster-sg-$clustername``` security group to allow nfs access. 
-      * NOTE: SG will have the following description
-        * ```eks-cluster-sg-{clusterName}-#########```
-        * ```EKS created security group applied to ENI that is attached to EKS Control Plane master nodes, as well as any managed workloads.``` 
+Create a copy of _**example-config/values.yaml.example**_ file and update it with your setup. 
 
-## Setup your EKS Cluster 
+* NOTE: to get a token use  ``` openssl rand -hex 32``` 
+    * Here is an example of a basic load balancer setup setup
+        ```bash 
+                jupyterhub:
+                    proxy:
+                        secretToken: your_token
+                        service:
+                        type: LoadBalancer
+                albIngressController:
+                enabled: false
+                allowExternalDNS: 
+                enabled: false
+                allowEFS: 
+                enabled: false
+        ```
+    * Here is another example of a basic setup using nodeport
+        ```bash
+            jupyterhub:
+            proxy:
+                secretToken: your_token
+                service:
+                type: NodePort
+                nodePorts:
+                    http: 30791
+                    https: 30792
+            albIngressController:
+            enabled: false
+            allowExternalDNS:
+            enabled: false
+            allowEFS:
+            enabled: false
+        ```
 
-1. Use ```aws configure``` to configure aws CLI 
-   * configure the following:
-     * | Key                   | Description                      |
-       | --------------------- | -------------------------------- |
-       | AWS Access Key ID     | AWS key for account              |
-       | AWS Secret Access Key | AWS Secret token to use aws cli  |
-       | Default region name   | main region for aws resources    |
-       | Default output format | output format of aws commands    |
-       
+Create a namespace for your chart to install on:
+  * kubernetes namespace defaults to the ```default ``` namespace
 
-2. Create IAM polices for your ALB Ingress Controller and External DNS. 
-   *  Create **IAM policy** using aws cli for alb ingress policy
-      * `aws iam create-policy \
-       --policy-name ALBIngressControllerIAMPolicy \
-       --policy-document file://IAM/alb-policy.json`
-   * Create **IAM policy** using aws cli for external dns policy
-       * `aws iam create-policy \
-           --policy-name AllowExternalDNSUpdates \
-           --policy-document file://IAM/dns-policy.json` 
-3.  Open _**cluster/custer.yaml**_ and update the following:
-    *   Attached ARN policies for the **alb-ingress-controller** and **external-dns**
-        *   format: ```arn:aws:iam::XXXXXXXXX:policy/AllowExternalDNSUpdates```
-    *   Public Key Path of public key used in your aws environment
-        *   [AWS KEY Pair Guide ](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html)
-        *   Steps:
-            1.  Create a key pair and output it into the pem file 
-                *  ```aws ec2 create-key-pair --key-name MyKeyPair --query 'KeyMaterial' --output text > MyKeyPair.pem```
-            2.  Generate the public key(pub) from the private key(pem)
-                * ```ssh-keygen -y -f MyKeyPair.pem > MyKeyPair.pub```
-            3.  Update the permisson of your pub file to only give read acess to the owner of the file
-                * ```chmod 400 MyKeyPair.pub```  
-            4. Pass the path to the public key file into cluster.yaml as the value for the **publicKeyPath**
-    *   Name and AWS Region of your eks cluster
-4.  Create the eks cluster
-    * ```eksctl create cluster -f cluster/cluster.yaml```
-    * This command will create the following:
-      * The EKS Cluster
-      * EKS Cluster role which is used to create aws resources for the kubernetes clusters
-      * Managed Node Groups that consists of EC2 Instances that are your worker nodes
-      * VPC, Public and private subnets
-      * Security groups for the control plane master nodes, load balancer, and communication between all nodes in the cluster
-      * IAM Roles for Service Accounts that allow cluster operators to map aws IAM roles to Kubernetes Service Account
-        * Current Service Accounts mapped:
-          * **alb-ingress-controller**
-          * **external-dns**
-        * NOTE: Use command below to show Roles created by EKSCTL with OIDC
-          * ```eksctl get iamserviceaccount --cluster cluster_name```
+        $ kubectl create namespace $NAMESPACE
 
-## Installation of Illumidesk Helm Chart 
+Add Illumidesk repository to HELM:
 
-1. Verify that helm exists: ```helm list```
-2. Create a namespace for your helm chart
-   * ```kubectl create namespace $NAMESPACE```
-3. Create a values yaml file locally and pass the chart values that you would like to override
-    * 
-    * You must override the following:
-    * | Key         | Description                                      | Command Line to get value  |
-      | ----------- | ------------------------------------------------ | -------------------------- |
-      |   awsAccessKey     | Access Key created for your account       | ```aws configure get aws_access_key_id``` |
-      | awsSecretToken     | Secret token provided by aws              | ```aws configure get aws_secret_access_key``` |
-      | secretToken     | Secret token for proxy generated by oppenssl           | ```openssl rand -hex 32```    |
-      | clusterName     | name of EKS cluster created from eksctl            | ```eksctl get cluster ``` |
-      | clusterVPC     | VPC ID of vpc generated by eksctl for your cluster         | ```aws eks describe-cluster --name cluster_name --query "cluster.resourcesVpcConfig.vpcId" --output text```
-      | awsRegion     | aws region where your cluster is located              | ```aws configure region```
-      | subnets     | subnets that are part of your cluster vpc. At least 2 required            | ```aws ec2 describe-subnets --filter "Name=vpc-id,Values=vpc-xxxxxxxxxxxx" "Name=tag:Name,Values=*Public*"  --query "Subnets[*].SubnetId"``` |
-      | domainFilter     | your aws route 53 hosted zonezone              | `aws route53 list-hosted-zones --query "HostedZones[*].Name"`|
-      | txtOwnerID     | identifies externalDNS instance            | set to a unique value that doesn't change during the lifetime of your cluster |
-      | efs     | efs file system url           | ```Go to console->EFS, Find the file system whose mounted targets are in the same vpc as the cluster``` |
-4. Using your values yaml file create the helm chart in your helm chart namespace 
-    * ```helm upgrade --install $RELEASE ./illumidesk/ --namespace $NAMESPACE --values path/to/file/values.yaml```
-5. Once complete, verify the url 
-   * ```dig jhub.example.com```
-6. Run ```df -HT```in your notebook container to view your mount targets 
+    $ helm repo add illumidesk https://illumidesk.github.io/helm-chart/
+    $ helm repo update
 
+Install a release of the illumidesk helm chart
+   
+    $ RELEASE=jhub
+    $ NAMESPACE=jhub 
+    $ helm upgrade --install $RELEASE illumidesk --namespace $NAMESPACE --values example-config/values.yaml
+
+## Uninstall the Chart
+    $ helm uninstall $RELEASE -n $NAMESPACE
+
+## Configuration 
+The following tables lists the configurable parameters of the chart and their default values.
+
+| Parameter                           | Description                                                                                                                              | Default                                                                                                                                                |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| rbac.enabled                        | gives applications only as much access they need to the kubernetes API                                                                  | TRUE                                                                                                                                                   |
+| Jupyterhub.proxy.secretToken        | 32-byte cryptographically secure randomly generated string used to secure communications between the hub and the configurable-http-proxy | value from running ```openssl rand -hex 32```                                                                                                          |
+| proxy.service.type                  | Kubernetes service to use to access jupyterhub                                                                                           | LoadBalancer                                                                                                                                           |
+| albIngressController.enabled        | allows creation of aws application load balancer                                                                                        | FALSE                                                                                                                                                  |
+| albIngressControler.awsAccessKey    | AWS Access Key used to authenticate with aws API                                                                                         | value from ```aws configure get aws_access_key_id```                                                                                                   |
+| albIngressController.awsSecretToken | AWS Secret Token used to authenticate with aws API                                                                                       | value from ```aws configure aws_secret_access_key```                                                                                                   |
+| albIngressController.ClusterName    | EKS Cluster where aws resources should be created                                                                                        | value from ```eksctl get cluster```                                                                                                                    |
+| albIngressController.ClusterVPC     | Cluster VPC ID alb ingress controller uses to create aws resources                                                                       | value from ```aws eks describe-cluster --name cluster_name --query "cluster.resourcesVpcConfig.vpcId" --output text```                                 |
+| albIngressController.awsRegion      | aws region where your cluster is located                                                                                                 | value from ```aws configure region```                                                                                                                  |
+| albIngressController.host           | Host name configured by aws ingress                                                                                                      |                                                                                                                                                        |
+| albIngressController.subnets        | subnets that are part of your cluster vpc. At least 2 required                                                                           | value from ```aws ec2 describe-subnets --filter "Name=vpc-id,Values=vpc-xxxxxxxxxxxx" "Name=tag:Name,Values=*Public*" --query "Subnets[*].SubnetId"``` |
+| albIngressController.ingressTags    | ingress tags to tag ALB/Target Groups/Security group                                                                                     |                                                                                                                                                        |
+| albIngressController.certifcate_arn | certificate managaged by aws                                                                                                             | certifcate managed by aws                                                                                                                              |
+| allowExternalDNS.enabled            | makes Kubernetes resources discoverable via public DNS Servers                                                                           | FALSE                                                                                                                                                  |
+| allowExternalDNS.domainFilter       | aws route 53 hosted zonezone                                                                                                             | value from ```aws route53 list-hosted-zones --query "HostedZones[*].Name"```                                                                           |
+| allowExternalDNS.txtOwnerID         | identifies externalDNS instance                                                                                                          |                                                                                                                                                        |
+| allowEFS.enabled                    | Enables creation of EFS manifests                                                                                                        | FALSE                                                                                                                                                  |
+| allowEFS.efs                        | efs file system url                                                                                                                      |                                                                                                                                                        |
+| allowEFS.orgName                    | organization name to configure efs path                                                                                                  | /                                                                                                                                                      |
+
+
+## Validate the Helm Chart
+
+* For nodeport you will need to use your one of your node ips and also the port you defined in your values file. 
+  * Open up your browser and use the **NODE_IP:NODE_PORT**
+  * Use the following command to list out your nodes:
+        
+        $ kubectl get nodes -o wide 
+          
+
+* For load balancer you will need to get the external IP for proxy-public 
+  * Use this command to view your services and then paste the loadbalancer dns that is is the external ip of proxy-public
+
+            $ kubectl get svc -n $NAMESPACE
+
+* For Application Load Balancer, you must have specified the host in your values file
+    *  Verify the dns has propgates your domain
+
+            $ dig $HOST 
+
+    * Open up your browser and paste the value for your host
+
+
+ 
 ## Cleanup
 
 ```bash
