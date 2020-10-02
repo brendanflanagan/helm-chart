@@ -11,7 +11,7 @@ metadata:
   # Namespace the ALB Ingress Controller should run in. Does not impact which
   # namespaces it's able to resolve ingress resource for. For limiting ingress
   # namespace scope, see --watch-namespace.
-  namespace: kube-system
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:

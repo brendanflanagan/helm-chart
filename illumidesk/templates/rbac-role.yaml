@@ -52,14 +52,14 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: alb-ingress-controller
-    namespace: kube-system
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  labels:
-    app.kubernetes.io/name: alb-ingress-controller
-  name: alb-ingress-controller
-  namespace: kube-system
-...
+    namespace: {{ .Release.Namespace }}
+#---
+# apiVersion: v1
+# kind: ServiceAccount
+# metadata:
+#   labels:
+#     app.kubernetes.io/name: alb-ingress-controller
+#   name: alb-ingress-controller
+#   namespace: {{ .Release.Namespace }}
+#...
 {{ end }}
