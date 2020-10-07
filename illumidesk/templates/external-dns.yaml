@@ -46,7 +46,6 @@ subjects:
 - kind: ServiceAccount
   name: external-dns
   namespace: {{ .Release.Namespace }}
-
 ---
 apiVersion: apps/v1
 kind: Deployment
