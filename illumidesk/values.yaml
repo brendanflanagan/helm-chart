@@ -32,11 +32,17 @@ jupyterhub:
         tag: latest
       cmd: start-singleuser.sh
 
-albIngressController:
+alb_ingress_controller:
   enabled: false
-allowExternalDNS: 
+  enable_irsa: false
+allow_external_dns: 
   enabled: false
-allowEFS: 
+  enable_irsa: false
+allow_efs: 
+  enabled: false
+
+nginx_ingress_controller:
+  eksctl: false
   enabled: false
 
 
