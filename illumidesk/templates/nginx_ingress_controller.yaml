@@ -137,7 +137,7 @@ subjects:
 ---
 # Source: ingress-nginx/templates/controller-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   labels:
     helm.sh/chart: ingress-nginx-3.4.0
@@ -232,7 +232,7 @@ rules:
 ---
 # Source: ingress-nginx/templates/controller-rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   labels:
     helm.sh/chart: ingress-nginx-3.4.0
@@ -245,7 +245,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
+  kind: ClusterRole
   name: ingress-nginx
 subjects:
   - kind: ServiceAccount
@@ -532,7 +532,7 @@ subjects:
 ---
 # Source: ingress-nginx/templates/admission-webhooks/job-patch/role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: ingress-nginx-admission
   annotations:
@@ -557,7 +557,7 @@ rules:
 ---
 # Source: ingress-nginx/templates/admission-webhooks/job-patch/rolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: ingress-nginx-admission
   annotations:
@@ -573,7 +573,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
+  kind: ClusterRole
   name: ingress-nginx-admission
 subjects:
   - kind: ServiceAccount

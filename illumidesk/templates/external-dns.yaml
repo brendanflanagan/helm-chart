@@ -8,7 +8,7 @@ kind: ServiceAccount
 metadata:
   name: external-dns
   namespace: {{ .Release.Namespace }}
-annotations:
+  annotations:
     {{- range $key, $value := .Values.allow_external_dns.service_account.annotations }}
       {{ $key }} : {{ $value }}
     {{- end }}
