@@ -1,4 +1,6 @@
-{{ if .Values.albIngressController.enabled }}
+{{ if .Values.alb_ingress_controller.enabled }}
+
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -53,13 +55,20 @@ subjects:
   - kind: ServiceAccount
     name: alb-ingress-controller
     namespace: {{ .Release.Namespace }}
-#---
-# apiVersion: v1
-# kind: ServiceAccount
-# metadata:
-#   labels:
-#     app.kubernetes.io/name: alb-ingress-controller
-#   name: alb-ingress-controller
-#   namespace: {{ .Release.Namespace }}
-#...
+---
+#if you are not using eksctl you create the cluster role
+{{ if .Values.alb_ingress_controller.enable_irsa }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/name: alb-ingress-controller
+  annotations:
+    {{- range $key, $value := .Values.alb_ingress_controller.service_account.annotations }}
+      {{ $key }} : {{ $value }}
+    {{- end }}
+  name: alb-ingress-controller
+  namespace: {{ .Release.Namespace }}
+...
+{{ end }}
 {{ end }}

@@ -134,3 +134,6 @@ cluster/*
 test/*
 IAM/*
 TLDR.gif
+
+#will remove later
+scripts/*
