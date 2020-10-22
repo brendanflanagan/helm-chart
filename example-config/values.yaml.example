@@ -33,16 +33,16 @@ jupyterhub:
     secretToken: cde97ffdfca6a5d97daea038b1dcd70a02677f4d5b5eabd3da0d6c247e60c0f2
 
 
-alb_ingress_controller:
+albIngressController:
   enabled: false
-  enable_irsa: false
-  aws_access_key: ''
-  aws_secret_token: ''
-  cluster_name: ''
-  cluster_vpc: ''
-  aws_region: ''
+  enableIRSA: false
+  awsAccessKey: ''
+  awsSecretToken: ''
+  clusterName: ''
+  clusterVPC: ''
+  awsRegion: ''
   host: ''
-  service_account:
+  serviceAccount:
     annotations: 
       eks.amazonaws.com/role-arn: arn:aws:iam::860100747351:role/eks-irsa-alb-ingress-controller
   ingress:
@@ -53,21 +53,21 @@ alb_ingress_controller:
       alb.ingress.kubernetes.io/subnets: []
       alb.ingress.kubernetes.io/tags: {}
       alb.ingress.kubernetes.io/certificate-arn: ''
-allow_efs:
+allowEFS:
   enabled: false
   efs: fs-ec8b0394.efs.us-east-2.amazon.aws.com
   orgName: 'apple'
-allow_external_dns:
+allowExternalDNS:
   enabled: true
-  enable_irsa: false
+  enableIRSA: false
   domainFilter: illumidesk.com
   txtOwnerID: illumidesk
-  service_account:
+  serviceAccount:
     annotations:
       eks.amazonaws.com/role-arn: arn:aws:iam::860100747351:role/eks-irsa-external-dns
-nginx_ingress_controller:
+nginxIngressController:
   enabled: true
   host: applehub.illumidesk.com
-  certificate_arn: arn:aws:acm:us-east-2:860100747351:certificate/834fc25f-3c6c-42ea-b21c-49349b657b83
+  certificateArn: arn:aws:acm:us-east-2:860100747351:certificate/834fc25f-3c6c-42ea-b21c-49349b657b83
   vpc_cidr: 192.168.0.0/16
 
