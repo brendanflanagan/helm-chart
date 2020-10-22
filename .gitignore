@@ -135,5 +135,11 @@ test/*
 IAM/*
 TLDR.gif
 
-#will remove later
+
 scripts/*
+illumidesk/charts/
+illumidesk/kots/*
+illumidesk/kots/deps
+illumidesk/kots/manifests/*.tgz
+illumidesk/.helmignore
+test/

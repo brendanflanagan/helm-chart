@@ -7,42 +7,51 @@ rbac:
 jupyterhub:
 # Helm config for jupyterhub goes here
 # See https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/master/jupyterhub/values.yaml
-    hub:
-      image:
-        name: illumidesk/k8s-hub
-        tag: latest
-      shutdownOnLogout: true
-    proxy:
-      https:
-        enabled: false
-      secretToken: ''
-      service:
-        # ports:
-        #   nodePort: 8080
-        type: ClusterIP
-    singleuser:
-      cmd: start-singleuser.sh
-      extraEnv:
-        CHOWN_HOME: 'yes'
-        Editor: vim
-      fsGid: 0
-      uid: 0
-      image:
-        name: illumidesk/base-notebook
-        tag: latest
-      cmd: start-singleuser.sh
-
-alb_ingress_controller:
-  enabled: false
-  enable_irsa: false
-allow_external_dns: 
-  enabled: false
-  enable_irsa: false
-allow_efs: 
+  hub:
+    extraConfig:
+      logoConfig: |
+        import urllib.request
+        urllib.request.urlretrieve("https://configs.illumidesk.com/images/illumidesk-80.png", "/srv/jupyterhub/illumidesk-80.png")
+        c.JupyterHub.logo_file = "/srv/jupyterhub/illumidesk-80.png"
+    image:
+      name: illumidesk/k8s-hub
+      tag: latest
+    shutdownOnLogout: true
+  proxy:
+    https:
+      enabled: true
+    secretToken: ''
+    service:
+      # ports:
+      #   nodePort: 8080
+      type: ClusterIP
+  singleuser:
+    cmd: start-singleuser.sh
+    extraEnv:
+      CHOWN_HOME: 'yes'
+      Editor: vim
+    fsGid: 0
+    uid: 0
+    image:
+      name: illumidesk/illumidesk-notebook
+      tag: latest
+    cmd: start-singleuser.sh
+postgresql:
   enabled: false
 
-nginx_ingress_controller:
-  eksctl: false
+
+
+
+albIngressController:
   enabled: false
+  enableIRSA: false
+allowExternalDNS: 
+  enabled: false
+  enableIRSA: false
+allowEFS: 
+  enabled: false
+nginxIngressController:
+  enabled: false
+  host: 'test'
 
 

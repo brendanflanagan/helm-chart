@@ -1,5 +1,5 @@
 #use this
-{{ if .Values.nginx_ingress_controller.enabled }}
+{{ if .Values.nginxIngressController.enabled }}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -13,7 +13,7 @@ spec:
   #     - apple.illumidesk.com
   #   secretName: testsecret-tls
   rules:
-  - host: {{.Values.nginx_ingress_controller.host}}
+  - host: {{.Values.nginxIngressController.host}}
     http:
       paths:
         - path: /
