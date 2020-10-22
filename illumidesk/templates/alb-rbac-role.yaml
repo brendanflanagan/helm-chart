@@ -57,14 +57,22 @@ subjects:
     namespace: {{ .Release.Namespace }}
 ---
 #if you are not using eksctl you create the cluster role
+<<<<<<< HEAD:illumidesk/templates/alb-rbac-role.yaml
 {{ if .Values.albIngressController.enableIRSA }}
+=======
+{{ if .Values.alb_ingress_controller.enable_irsa }}
+>>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831:illumidesk/templates/alb-rbac-role.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
     app.kubernetes.io/name: alb-ingress-controller
   annotations:
+<<<<<<< HEAD:illumidesk/templates/alb-rbac-role.yaml
     {{- range $key, $value := .Values.albIngressController.serviceAccount.annotations }}
+=======
+    {{- range $key, $value := .Values.alb_ingress_controller.service_account.annotations }}
+>>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831:illumidesk/templates/alb-rbac-role.yaml
       {{ $key }} : {{ $value }}
     {{- end }}
   name: alb-ingress-controller

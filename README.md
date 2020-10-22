@@ -35,11 +35,11 @@ Create a copy of _**example-config/values.yaml.example**_ file and update it wit
                         secretToken: your_token
                         service:
                         type: LoadBalancer
-                albIngressController:
+                alb_ingress_controller:
                 enabled: false
-                allowExternalDNS: 
+                allow_external_dns: 
                 enabled: false
-                allowEFS: 
+                allow_efs: 
                 enabled: false
         ```
     * Here is another example of a basic setup using nodeport
@@ -52,11 +52,11 @@ Create a copy of _**example-config/values.yaml.example**_ file and update it wit
                 nodePorts:
                     http: 30791
                     https: 30792
-            albIngressController:
+            alb_ingress_controller:
             enabled: false
-            allowExternalDNS:
+            allow_external_dns:
             enabled: false
-            allowEFS:
+            allow_efs:
             enabled: false
         ```
   
@@ -76,7 +76,6 @@ Install a release of the illumidesk helm chart
 
 ## Configuration 
 The following tables lists the configurable parameters of the chart and their default values.
-
 
 | Parameter                                                                          | Description                                                                                                                              | Default                                                                                                                                        |
 | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |

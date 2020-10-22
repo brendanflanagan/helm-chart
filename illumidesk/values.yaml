@@ -42,13 +42,25 @@ postgresql:
 
 
 
-albIngressController:
+alb_ingress_controller:
   enabled: false
+<<<<<<< HEAD
   enableIRSA: false
 allowExternalDNS: 
   enabled: false
   enableIRSA: false
 allowEFS: 
+=======
+  enable_irsa: false
+allow_external_dns: 
+  enabled: false
+  enable_irsa: false
+allow_efs: 
+  enabled: false
+
+nginx_ingress_controller:
+  eksctl: false
+>>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831
   enabled: false
 nginxIngressController:
   enabled: false

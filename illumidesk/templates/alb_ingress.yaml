@@ -1,4 +1,4 @@
-{{ if .Values.albIngressController.enabled }}
+{{ if .Values.alb_ingress_controller.enabled }}
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
@@ -13,7 +13,7 @@ metadata:
 spec:
 
   rules:
-  - host: {{ .Values.albIngressController.host }}
+  - host: {{ .Values.alb_ingress_controller.host }}
     http:
       paths:
       - path: /*
