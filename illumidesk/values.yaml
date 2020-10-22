@@ -52,5 +52,6 @@ allowEFS:
   enabled: false
 nginxIngressController:
   enabled: false
+  host: 'test'
 
 

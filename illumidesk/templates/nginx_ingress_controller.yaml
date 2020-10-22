@@ -42,11 +42,7 @@ data:
       listen 2443;
       return 308 https://$host$request_uri;
     }
-<<<<<<< HEAD
-  proxy-real-ip-cidr: {{ .Values.nginxIngressController.vpc_cidr }}
-=======
-  proxy-real-ip-cidr: {{ .Values.nginx_ingress_controller.vpc_cidr }}
->>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831
+  proxy-real-ip-cidr: {{ .Values.nginxIngressController.vpcCIDR }}
   use-forwarded-headers: 'true'
 ---
 # Source: ingress-nginx/templates/clusterrole.yaml
@@ -59,11 +55,7 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/version: 0.40.1
     app.kubernetes.io/managed-by: Helm
-<<<<<<< HEAD
   name: ingress-nginx-{{ .Release.Name }}
-=======
-  name: ingress-nginx
->>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831
 rules:
   - apiGroups:
       - ''
@@ -133,19 +125,11 @@ metadata:
     app.kubernetes.io/instance: ingress-nginx
     app.kubernetes.io/version: 0.40.1
     app.kubernetes.io/managed-by: Helm
-<<<<<<< HEAD
   name: ingress-nginx-{{ .Release.Name }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: ingress-nginx-{{ .Release.Name }}
-=======
-  name: ingress-nginx
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ingress-nginx
->>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831
 subjects:
   - kind: ServiceAccount
     name: ingress-nginx
@@ -162,11 +146,7 @@ metadata:
     app.kubernetes.io/version: 0.40.1
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
-<<<<<<< HEAD
   name: ingress-nginx-{{ .Release.Name }}
-=======
-  name: ingress-nginx
->>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831
   namespace: {{ .Release.Namespace }}
 rules:
   - apiGroups:
@@ -261,20 +241,12 @@ metadata:
     app.kubernetes.io/version: 0.40.1
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: controller
-<<<<<<< HEAD
   name: ingress-nginx-{{ .Release.Name }}
-=======
-  name: ingress-nginx
->>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831
   namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-<<<<<<< HEAD
   name: ingress-nginx-{{ .Release.Name }}
-=======
-  name: ingress-nginx
->>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831
 subjects:
   - kind: ServiceAccount
     name: ingress-nginx
@@ -312,11 +284,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
     service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: '60'
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
-<<<<<<< HEAD
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .Values.nginxIngressController.certificateArn }}
-=======
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .Values.nginx_ingress_controller.certificate_arn }}
->>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: https
     service.beta.kubernetes.io/aws-load-balancer-type: elb
   labels:
@@ -472,11 +440,7 @@ metadata:
     app.kubernetes.io/version: 0.40.1
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: admission-webhook
-<<<<<<< HEAD
   name: ingress-nginx-admission-{{ .Release.Name }}
-=======
-  name: ingress-nginx-admission
->>>>>>> 374754d43d6267004123dd7688f63b7f3aa95831
 webhooks:
   - name: validate.nginx.ingress.kubernetes.io
     rules:
