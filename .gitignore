@@ -137,8 +137,9 @@ TLDR.gif
 
 
 scripts/*
-illumidesk/charts/*
+illumidesk/charts/
 illumidesk/kots/*
 illumidesk/kots/deps
 illumidesk/kots/manifests/*.tgz
 illumidesk/.helmignore
+test/
