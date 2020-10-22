@@ -1,6 +1,5 @@
 # IllumiDesk Helm Chart
 
-:warning: Draft Status :warning:
 
 # Overview
 

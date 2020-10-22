@@ -1,6 +1,5 @@
 # IllumiDesk Infrastructure setup
 
-:warning: Draft Status :warning:
 
 # Overview
 
