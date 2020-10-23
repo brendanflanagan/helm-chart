@@ -39,6 +39,23 @@ jupyterhub:
 postgresql:
   enabled: false
 
+datadog:
+  enabled: false
+  targetSystem: "linux"
+  datadog:
+    apiKey: ''
+    site: ''
+    clusterName: ''
+    logs:
+      enabled: true
+      containerCollectAll: true
+    clusterAgent:
+      enabled: true
+      token: ''
+      metricsProvider:
+        enabled: true
+kube-state-metrics:
+  enabled: false
 
 
 
