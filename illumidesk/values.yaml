@@ -57,8 +57,6 @@ datadog:
 kube-state-metrics:
   enabled: false
 
-
-
 albIngressController:
   enabled: false
   enableIRSA: false
