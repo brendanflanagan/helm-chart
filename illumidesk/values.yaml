@@ -16,6 +16,7 @@ jupyterhub:
     image:
       name: illumidesk/k8s-hub
       tag: latest
+      pullPolicy: Always
     shutdownOnLogout: true
   proxy:
     https:
@@ -35,7 +36,7 @@ jupyterhub:
     image:
       name: illumidesk/illumidesk-notebook
       tag: latest
-    cmd: start-singleuser.sh
+      pullPolicy: Always
 postgresql:
   enabled: false
 
@@ -56,6 +57,10 @@ datadog:
         enabled: true
 kube-state-metrics:
   enabled: false
+
+nfs-server-provisioner:
+  enabled: false
+
 
 albIngressController:
   enabled: false

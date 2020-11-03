@@ -143,3 +143,4 @@ illumidesk/kots/deps
 illumidesk/kots/manifests/*.tgz
 illumidesk/.helmignore
 test/
+kots/
