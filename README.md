@@ -34,11 +34,11 @@ Create a copy of _**example-config/values.yaml.example**_ file and update it wit
                         secretToken: your_token
                         service:
                         type: LoadBalancer
-                alb_ingress_controller:
+                albIngressController:
                 enabled: false
-                allow_external_dns: 
+                allowExternalDNS: 
                 enabled: false
-                allow_efs: 
+                allowNFS: 
                 enabled: false
         ```
     * Here is another example of a basic setup using nodeport
@@ -51,11 +51,11 @@ Create a copy of _**example-config/values.yaml.example**_ file and update it wit
                 nodePorts:
                     http: 30791
                     https: 30792
-            alb_ingress_controller:
+            albIngressController:
             enabled: false
-            allow_external_dns:
+            allowExternalDNS:
             enabled: false
-            allow_efs:
+            allowNFS:
             enabled: false
         ```
   
@@ -66,8 +66,8 @@ Add Illumidesk repository to HELM:
 
 Install a release of the illumidesk helm chart
    
-    $ RELEASE=jhub
-    $ NAMESPACE=jhub 
+    $ RELEASE=illumidesk
+    $ NAMESPACE=illumidesk 
     $ helm upgrade --install $RELEASE illumidesk --namespace $NAMESPACE --values example-config/values.yaml
 
 ## Uninstall the Chart
@@ -75,7 +75,6 @@ Install a release of the illumidesk helm chart
 
 ## Configuration 
 The following tables lists the configurable parameters of the chart and their default values.
-
 | Parameter                                                                          | Description                                                                                                                              | Default                                                                                                                                        |
 | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | rbac.enabled                                                                       | gives applications only as much access they need to the kubernetes API                                                                   | TRUE                                                                                                                                           |
@@ -101,15 +100,15 @@ The following tables lists the configurable parameters of the chart and their de
 | allowExternalDNS.domainFilter                                                      | aws route 53 hosted zonezone                                                                                                             | value from aws route53 list-hosted-zones --query "HostedZones[*].Name"                                                                         |
 | allowExternalDNS.txtOwnerID                                                        | identifies externalDNS instance                                                                                                          |                                                                                                                                                |
 | allowExternalDNS.serviceAccount.annotations.eks.amazonaws.com/role-arn             | assuming 'enableIRSA:true' pass the role arn for the external dns                                                                        |                                                                                                                                                |
-| allowEFS.enabled                                                                   | Enables creation of EFS manifests                                                                                                        | FALSE                                                                                                                                          |
-| allowEFS.efs                                                                       | efs file system url                                                                                                                      | FALSE                                                                                                                                          |
-| allowEFS.orgName                                                                   | organization name to configure efs path                                                                                                  | /                                                                                                                                              |
+| allowNFS.enabled                                                                   | Enables creation of EFS manifests                                                                                                        | FALSE                                                                                                                                          |
+| allowNFS.server                                                                    | efs file system url                                                                                                                      | FALSE                                                                                                                                          |
+| allowEFS.path                                                                      | organization name to configure efs path                                                                                                  | /                                                                                                                                              |
 | nginxIngressController.enabled                                                     | allows creation of nginx ingress controller                                                                                              | FALSE                                                                                                                                          |
 | nginxIngressController.host                                                        | Host name configured by ingress resource that uses nginx                                                                                 |                                                                                                                                                |
 | nginxIngressController.certificateArn                                              | certificate managaged by aws                                                                                                             | certifcate managed by aws                                                                                                                      |
-| nginxIngressController.vpc_cidr                                                    | CIDR of your cluster vpc                                                                                                                 | XXX.XXX.XXX/XX                                                                                                                                 |
+| nginxIngressController.vpcCIDR                                                     | CIDR of your cluster vpc                                                                                                                 | XXX.XXX.XXX/XX                                                                                                                                 |
 | postgresql.enabled                                                                 | Enables creation of postgresql manifests                                                                                                 | FALSE                                                                                                                                          |
-
+| datadog.enabled                                                                    | Enables datadog                                                                                                                          | FALSE                                                                                                                                          |
 
 ## Validate the Helm Chart
 
