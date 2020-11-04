@@ -75,6 +75,7 @@ Install a release of the illumidesk helm chart
 
 ## Configuration 
 The following tables lists the configurable parameters of the chart and their default values.
+
 | Parameter                                                                          | Description                                                                                                                              | Default                                                                                                                                        |
 | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | rbac.enabled                                                                       | gives applications only as much access they need to the kubernetes API                                                                   | TRUE                                                                                                                                           |
