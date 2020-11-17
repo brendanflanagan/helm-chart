@@ -1,0 +1,139 @@
+{{ if .Values.graderSetupService.enabled }}
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: illumidesk-account
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: grader-setup-service-{{ .Release.Name }}
+  labels:
+    app: illumidesk
+    component: grader-setup-service-{{ .Release.Name }}
+rules:
+  - apiGroups:
+     - ""
+     - extensions
+    resources:
+     - services
+     - pods/status
+    verbs:
+     - create
+     - get
+     - list
+     - update
+     - watch
+     - patcn
+     - delete
+  - apiGroups:
+      - "apps"
+      - extensions
+    resources:
+      - pods
+      - secrets
+      - services
+      - namespaces
+      - deployments
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+      - delete
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: grader-setup-service-{{ .Release.Name }}
+  labels:
+    app: illumidesk
+    component: grader-setup-service-{{ .Release.Name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: grader-setup-service-{{ .Release.Name }}
+subjects:
+  - kind: ServiceAccount
+    name: illumidesk-account
+    namespace: {{ .Release.Namespace }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grader-setup-service
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  selector:
+    component: grader-setup-service
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grader-setup-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: illumidesk
+    component: grader-setup-service
+spec:
+  selector:
+    matchLabels:
+      component: grader-setup-service
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: illumidesk
+        component: grader-setup-service
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: grader-setup-container
+          image: illumidesk/grader-setup-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: GRADER_IMAGE_NAME
+              value: {{ .Values.graderSetupService.graderImage }}
+            - name: POSTGRES_NBGRADER_HOST
+              value: {{ .Values.graderSetupService.postgresNBGraderHost }}
+            - name: POSTGRES_NBGRADER_USER
+              value: {{ .Values.graderSetupService.postgresNBGraderUser | default "postgres" }}
+            - name: POSTGRES_NBGRADER_PASSWORD
+              value: {{ .Values.graderSetupService.postgresNBGraderPassword | default "illumidesk" }}
+            - name: ILLUMIDESK_MNT_ROOT
+              value: '/illumidesk-courses'
+            - name: ILLUMIDESK_K8S_NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: GRADER_PVC
+              value: grader-pvc-{{ .Release.Name }}
+            - name: GRADER_SHARED_PVC
+              value: shared-pvc-{{ .Release.Name }}
+          volumeMounts:
+            - name: grader-pv-{{ .Release.Name }}
+              mountPath: /illumidesk-courses
+              subPath: illumidesk-courses
+            - name: shared-pv-{{ .Release.Name }}
+              mountPath: /illumidesk-nb-exchange
+      serviceAccountName: illumidesk-account
+      volumes:
+        - name: shared-pv-{{.Release.Name }}
+          persistentVolumeClaim:
+            claimName: shared-pvc-{{ .Release.Name }}
+        - name: grader-pv-{{ .Release.Name }}
+          persistentVolumeClaim:
+            claimName: grader-pvc-{{ .Release.Name }}
+
+{{ end }}

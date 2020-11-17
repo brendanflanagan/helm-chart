@@ -1,0 +1,15 @@
+{{ if .Values.allowNFS.enabled }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: grader-pvc-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  volumeName: grader-pv-{{ .Release.Name }}
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 11Gi
+{{ end }}
