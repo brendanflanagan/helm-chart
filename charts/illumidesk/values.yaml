@@ -22,6 +22,20 @@ jupyterhub:
   # JupyterHub's application settings
   # ref: https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/master/jupyterhub/values.yaml
   hub:
+    config:
+      # Custom Authenticator to use generic Oauth2.0 with Jupyterhub
+      GenericOAuthenticator:
+        # Callback URL to return to the user after autohrization
+        oauth_callback_url: ''
+        # Authenticaton url to initiate oauth
+        authorize_url: ''
+        # The url that retrieves an access token at the completion of oauth
+        token_url: ''
+        # The url for retrieves user data with a completed access token
+        userdata_url: ''
+      JupyterHub:
+        # Provide Authenticator class ta
+        authenticator_class: generic-oauth
     # JupyterHub's database configuration. Defaults to "postgres" since other options, such as "sqlite-pvc",
     # require additional PVC configuration settings.
     # ref: https://zero-to-jupyterhub.readthedocs.io/en/stable/resources/reference.html#hub-db
@@ -31,10 +45,144 @@ jupyterhub:
       type: postgres
     # Extra configuration options
     # ref: https://zero-to-jupyterhub.readthedocs.io/en/stable/resources/reference.html#hub-extraconfig
+    extraEnv:
+      # Select Authentication Type: LTI11, LTI13, AUTH0
+      CUSTOM_AUTH_TYPE: AUTH0
+      # Provide Organization Name that matches Namespace
+      ORGANIZATION_NAME: illumidesk
+      JUPYTERHUB_API_URL: http://hub:8081/hub/api
+      # Mount Root
+      ILLUMIDESK_MNT_ROOT: '/illumidesk-courses'
+      OIDC_AUTHORIZE_URL: "https://auth.illumidesk.com/authorize"
+      OIDC_TOKEN_URL: "https://auth.illumidesk.com/oauth/token"
+      OIDC_USERDATA_URL: "https://auth.illumidesk.com/userinfo"
+      OIDC_CLIENT_ID: ""
+      OIDC_CLIENT_SECRET: ""
+      OIDC_CALLBACK_URL: ""
+      LTI_CONSUMER_KEY: lti_11_consumer_key
+      LTI_SHARED_SECRET: lti_11_shared_secret
+      LTI13_PRIVATE_KEY: '/srv/jupyterhub/rsa_private.key'
+      LTI13_CLIENT_ID: ""
+      LTI13_ENDPOINT: https://illumidesk.instructure.com/api/lti/security/jwks
+      LTI13_AUTHORIZE_URL: https://illumidesk.instructure.com/api/lti/authorize_redirect
+      LTI13_TOKEN_URL: https://illumidesk.instructure.com/login/oauth2/token
+      POSTGRES_JUPYTERHUB_PORT: '5432'
     extraConfig:
       # The logo that appears on the top right of the control panel and end-user notebooks with Jupyter Classic.
       logoConfig: |
         c.JupyterHub.logo_file = "/srv/jupyterhub/illumidesk-80.png"
+
+      illumideskAuthConfig: |
+
+        import os
+        from illumidesk.authenticators.authenticator import setup_course_hook
+        from oauthenticator.generic import GenericOAuthenticator
+
+        custom_auth_type = os.environ.get('CUSTOM_AUTH_TYPE')
+
+        if custom_auth_type == 'LTI13':
+          c.JupyterHub.authenticator_class = 'illumidesk.authenticators.authenticator.LTI13Authenticator'
+          c.LTI13Authenticator.endpoint = os.environ.get('LTI13_ENDPOINT') or 'https://illumidesk.instructure.com/api/lti/security/jwks'
+          c.LTI13Authenticator.client_id = os.environ.get('LTI13_CLIENT_ID')
+          c.LTI13Authenticator.authorize_url = os.environ.get('LTI13_AUTHORIZE_URL') or 'https://illumidesk.instructure.com/api/lti/authorize_redirect'
+          c.LTI13Authenticator.token_url = os.environ.get('LTI13_TOKEN_URL') or 'https://illumidesk.instructure.com/login/oauth2/token'
+          c.JupyterHub.extra_handlers = [
+              (r'/lti13/config$', 'illumidesk.lti13.handlers.LTI13ConfigHandler'),
+              (r'/lti13/jwks$', 'illumidesk.lti13.handlers.LTI13JWKSHandler'),
+            ]
+        elif custom_auth_type == 'LTI11':
+          c.JupyterHub.authenticator_class = 'illumidesk.authenticators.authenticator.LTI11Authenticator'
+          c.LTIAuthenticator.consumers = {
+              os.environ.get('LTI_CONSUMER_KEY')
+              or 'ild_test_consumer_key': os.environ.get('LTI_SHARED_SECRET')
+              or 'ild_test_shared_secret'
+          }
+        elif custom_auth_type == 'AUTH0':
+          # Set the authenticator
+          c.JupyterHub.authenticator_class = GenericOAuthenticator
+          c.Authenticator.auto_login = True
+          # Verify TLS certificates.
+          os.environ['OAUTH2_TLS_VERIFY'] = 'True'
+          if os.environ.get('OAUTH2_TLS_VERIFY') == 'True':
+              c.OAuthenticator.tls_verify = True
+          else:
+              c.OAuthenticator.tls_verify = False
+
+          # OAuthenticator settings for AUTH0
+          c.OAuthenticator.client_id = os.environ.get('OIDC_CLIENT_ID') or 'illumidesk-hub'
+          c.OAuthenticator.client_secret = os.environ.get('OIDC_CLIENT_SECRET')
+          c.OAuthenticator.oauth_callback_url = os.environ.get('OIDC_CALLBACK_URL') or 'http://127.0.0.1/hub/oauth_callback'
+          c.OAuthenticator.authorize_url = os.environ.get('OIDC_AUTHORIZE_URL') or f'http://127.0.0.1/auth/realms/illumidesk-realm/protocol/openid-connect/auth'
+          c.OAuthenticator.token_url = os.environ.get('OIDC_TOKEN_URL') or f'http://127.0.0.1/auth/realms/illumidesk-realm/protocol/openid-connect/token'
+          c.GenericOAuthenticator.userdata_url = os.environ.get('OIDC_USERDATA_URL') or 'http://localhost:8080/auth/realms/illumidesk-realm/protocol/openid-connect/userinfo'
+          c.GenericOAuthenticator.userdata_method = 'GET'
+          # clarify scopes
+          c.GenericOAuthenticator.scope = ['openid','email','profile']
+          # User name key returned by user
+          c.GenericOAuthenticator.username_key = 'nickname'
+
+        if custom_auth_type != 'AUTH0':
+
+          c.Authenticator.post_auth_hook = setup_course_hook
+
+          def userdata_hook(spawner, auth_state):
+              if not auth_state:
+                  raise ValueError('auth_state not enabled.')
+              spawner.log.debug('auth_state_hook set with %s role' % auth_state['user_role'])
+              user_role = auth_state['user_role']
+              # set spawner environment
+              spawner.environment['USER_ROLE'] = user_role
+              spawner.log.debug('Assigned USER_ROLE env var to %s' % spawner.environment['USER_ROLE'])
+
+          c.Spawner.auth_state_hook = userdata_hook
+
+        c.Authenticator.enable_auth_state = True
+
+        c.JupyterHub.db_url = 'postgresql://{user}:{password}@{host}:{port}/{db}'.format(
+          user=os.environ.get('POSTGRES_JUPYTERHUB_USER'),
+          password=os.environ.get('POSTGRES_JUPYTERHUB_PASSWORD'),
+          host=os.environ.get('POSTGRES_JUPYTERHUB_HOST'),
+          port=os.environ.get('POSTGRES_JUPYTERHUB_PORT'),
+          db=os.environ.get('POSTGRES_JUPYTERHUB_DB'),
+        )
+        # Upgrade the database automatically on start
+        c.JupyterHub.upgrade_db = True
+
+      illumideskSecurity: |
+        c.JupyterHub.tornado_settings = {
+          "headers": {"Content-Security-Policy": "frame-ancestors 'self' *"},
+          "cookie_options": {"SameSite": "None", "Secure": True},
+        }
+
+      privateKey: |
+        import os
+        import z2jh
+        from os import chmod
+        from Crypto.PublicKey import RSA
+        key_path = os.environ.get('LTI13_PRIVATE_KEY') or '/srv/jupyterhub/rsa_private.key'
+        key = RSA.generate(2048)
+        with open(key_path, 'wb') as content_file:
+          content_file.write(key.exportKey('PEM'))
+        chmod(key_path, 0o600)
+
+      illumideskServices: |
+        import requests
+        import os
+        import z2jh
+        custom_auth_type = os.environ.get('CUSTOM_AUTH_TYPE')
+        if custom_auth_type != 'AUTH0':
+          c.JupyterHub.services.append({
+            'name': 'announcement',
+            'admin': True,
+            'url': 'http://0.0.0.0:8889',
+            'command': ["python3", "/etc/jupyterhub-services/announcement.py", "--port", "8889", "--api-prefix", "/services/announcement"],
+            'api_token': os.environ.get("JUPYTERHUB_API_TOKEN") })
+          # load extra grader services launched from grader-setup service
+          services_resp = requests.get('http://grader-setup-service.{}.svc.cluster.local:8000/services'.format(os.environ.get('ORGANIZATION_NAME')))
+          services_resp = services_resp.json()
+          c.JupyterHub.load_groups.update(services_resp['groups'])
+          c.JupyterHub.services.extend(services_resp['services'])
+
     # The JupyterHub docker image
     # ref: https://zero-to-jupyterhub.readthedocs.io/en/stable/resources/reference.html#hub-image
     image:
@@ -42,7 +190,7 @@ jupyterhub:
       # DockerHub (docker.io).
       name: illumidesk/jupyterhub
       # The JupyterHub image tag
-      tag: k8s-latest
+      tag: "latest"
       # Whether or not to always pull the image from the registry.
       pullPolicy: Always
     # Shuts down the end-user server (pod) when the user logs out.
@@ -77,9 +225,9 @@ jupyterhub:
       # The default editor for user's environment
       Editor: vim
     # The GID the hub process should be using when touching any volumes mounted.
-    fsGid: 1000
+    fsGid: 0
     # The UID the hub process should be running as.
-    uid: 1000
+    uid: 0
     # The single user notebook image. If using a registry other than DockerHub (docker.io), prepend the
     # registry's domain to the namespace. For example: quay.io/illumidesk/illumidesk-notebook.
     image:
@@ -100,9 +248,9 @@ postgresql:
   # Provide Postgresql username
   postgresqlUsername: postgres
   # Provide Postgresql password if username is not defined, the default username will have this password
-  postgresqlPostgresPassword: ''
+  postgresqlPostgresPassword: 'postgres123'
   # Provide Postgresql password
-  postgresqlPassword: ''
+  postgresqlPassword: 'postgres123'
   # Provide in cluster database name
   postgresqlDatabase: 'illumidesk'
 
@@ -203,7 +351,7 @@ graderSetupService:
   # DockerHub is required (defaults to docker.io) the include the registy identifier
   # before the image name. For example:
   # k8s.gcr.io/<org-name>/<image-name:tag-name>
-  graderSetupImage: illumidesk/grader-setup-app:latest
+  graderSetupImage: illumidesk/grader-setup-service:latest
   # The docker image for the shared grader notebook. If a registry other than
   # DockerHub is required (defaults to docker.io) the include the registy identifier
   # before the image name. For example:
