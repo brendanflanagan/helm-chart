@@ -1,9 +1,9 @@
-{{ if .Values.allowNFS.enabled }}
+{{ if or (.Values.allowNFS.enabled) (.Values.allowLocal.enabled) }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: grader-pv-{{ .Release.Name }}
-{{ if eq .Values.allowNFS.type "local" }}
+{{ if .Values.allowLocal.enabled }}
   labels:
     type: local
 {{ end }}
@@ -14,7 +14,7 @@ spec:
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Delete
-{{ if eq .Values.allowNFS.type "local" }}
+{{ if .Values.allowLocal.enabled }}
   storageClassName: local-storage
   local:
     path: "/illumidesk-courses"
@@ -26,7 +26,7 @@ spec:
           operator: In
           values:
           - illumidesk-oregon-control-plane
-{{ else if  eq .Values.allowNFS.type "efs" }}
+{{ else if .Values.allowNFS.enabled }}
   storageClassName: ""
   nfs:
     server: {{ .Values.allowNFS.server }}

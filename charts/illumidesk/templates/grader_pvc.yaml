@@ -1,4 +1,4 @@
-{{ if .Values.allowNFS.enabled }}
+{{ if or (.Values.allowNFS.enabled) (.Values.allowLocal.enabled) }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
@@ -6,9 +6,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   volumeName: grader-pv-{{ .Release.Name }}
-{{ if eq .Values.allowNFS.type "local" }}
+{{ if  .Values.allowLocal.enabled }}
   storageClassName: "local-storage"
-{{ else if  eq .Values.allowNFS.type "efs" }}
+{{ else if .Values.allowNFS.enabled }}
   storageClassName: ""
 {{ end }}
   accessModes:
