@@ -438,9 +438,9 @@ allowLocal:
   # enables local file system
   enabled: false
 
+
 illumideskSettings:
   enabled: true
-
 ## Grader setup service
 ##
 graderSetupService:
