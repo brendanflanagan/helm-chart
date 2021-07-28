@@ -108,7 +108,7 @@ spec:
             limits:
               cpu: {{ .Values.graderSetupService.graderCpuLimit | default "400m" | quote }}
               memory: {{ .Values.graderSetupService.graderMemLimit | default "800Mi" | quote }}
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           env:
