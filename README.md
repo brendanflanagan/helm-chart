@@ -109,7 +109,6 @@ helm upgrade --install test --set proxy.secretToken=XXXXXXXXXX illumidesk/illumi
 
 The following tables lists the configurable parameters of the chart and their default values.
 
-
 | Parameter                                                                  | Description                                                                           | Default                                                                             |
 | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | albIngress.host                                                            | Host name configured by ingress resource that uses alb                                | XXXXX.illumidesk.com                                                                |
@@ -154,6 +153,9 @@ The following tables lists the configurable parameters of the chart and their de
 | datadog.enabled                                                            | Enables datadog                                                                       | FALSE                                                                               |
 | graderSetupService.enabled                                                 | Enables Grader Setup Service                                                          | FALSE                                                                               |
 | graderSetupService.graderSpawnerImage                                      | Grader Image Name                                                                     | illumidesk/illumidesk-grader:latest                                                 |
+| graderSetupService.graderSpawnerCPU                                        | CPU Allocated for each grader                                                         | 200m                                                                                |
+| graderSetupService.graderSpawnerMem                                        | Memory Allocated for each grader                                                      | 400Mi                                                                                |
+| graderSetupService.graderSpawnerStorage                                    | Storage Allocated for each grader                                                     | 500Mi                                                                                 |
 | graderSetupService.graderSpawnerCpuGuarantee                               | CPU allocated for each grader                                                         | 200m                                                                                |
 | graderSetupService.graderSpawnerCpuLimit                                   | Max CPU allocation for each grader                                                         | 400m                                                                                |
 | graderSetupService.graderSpawnerMemGuarantee                               | Memory allocated for each grader                                                      | 400Mi                                                                                |
@@ -167,7 +169,6 @@ The following tables lists the configurable parameters of the chart and their de
 | graderSetupService.graderMemLimit                                          | Provide Max Memory allocation allowed for Grader Setup Service                        |  800Mi                                                                                   |
 | graderSetupService.StorageCapacity                                         | Provide storage capacity the Grader Setup Service can use                             | 200Mi                                                                                |
 | graderSetupService.StorageRequests                                         | Provide initial storage allocated for the Grader Setup Service                        | 1Gi                                                                                |
-
 
 ## Validate the Helm Chart
 
