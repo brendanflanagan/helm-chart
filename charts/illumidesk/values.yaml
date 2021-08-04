@@ -71,8 +71,6 @@ jupyterhub:
           configMapKeyRef:
             name: hub-illumidesk-cm           # The ConfigMap this value comes from.
             key: JUPYTERHUB_API_URL
-      # Mount Root
-      ILLUMIDESK_MNT_ROOT: "/illumidesk-courses"
       # OIDC Authorize URL
       OIDC_AUTHORIZE_URL:
         valueFrom:
@@ -109,7 +107,6 @@ jupyterhub:
           configMapKeyRef:
             name: hub-illumidesk-cm           # The ConfigMap this value comes from.
             key: LTI_CONSUMER_KEY
-      LTI13_PRIVATE_KEY: "/srv/jupyterhub/rsa_private.key"
       LTI13_CLIENT_ID:
         valueFrom:
           configMapKeyRef:
@@ -160,6 +157,9 @@ jupyterhub:
           configMapKeyRef:
             name: hub-illumidesk-cm           # The ConfigMap this value comes from.
             key: POSTGRES_JUPYTERHUB_DB
+      LTI13_PRIVATE_KEY: "/srv/jupyterhub/rsa_private.key"
+      # Mount Root
+      ILLUMIDESK_MNT_ROOT: "/illumidesk-courses"
     extraConfig:
       # The logo that appears on the top right of the control panel and end-user notebooks with Jupyter Classic.
       logoConfig: |
@@ -173,7 +173,6 @@ jupyterhub:
         from oauthenticator.generic import GenericOAuthenticator
 
         custom_auth_type = os.environ.get('CUSTOM_AUTH_TYPE')
-
         c.JupyterHub.hub_connect_ip = 'hub'
         if custom_auth_type == 'LTI13':
           c.JupyterHub.authenticator_class = 'illumidesk.authenticators.authenticator.LTI13Authenticator'
@@ -268,18 +267,12 @@ jupyterhub:
         import os
         import z2jh
         custom_auth_type = os.environ.get('CUSTOM_AUTH_TYPE')
-        if custom_auth_type != 'AUTH0':
-          c.JupyterHub.services.append({
-            'name': 'announcement',
-            'admin': True,
-            'url': 'http://0.0.0.0:8889',
-            'command': ["python3", "/etc/jupyterhub-services/announcement.py", "--port", "8889", "--api-prefix", "/services/announcement"],
-            'api_token': os.environ.get("JUPYTERHUB_API_TOKEN") })
-          # load extra grader services launched from grader-setup service
-          services_resp = requests.get('http://grader-setup-service.{}.svc.cluster.local:8000/services'.format(os.environ.get('ORGANIZATION_NAME')))
-          services_resp = services_resp.json()
-          c.JupyterHub.load_groups.update(services_resp['groups'])
-          c.JupyterHub.services.extend(services_resp['services'])
+        org_name = os.environ.get('ORGANIZATION_NAME')
+        # load extra grader services launched from grader-setup service
+        services_resp = requests.get('http://grader-setup-service.{}.svc.cluster.local:8000/services'.format(org_name))
+        services_resp = services_resp.json()
+        c.JupyterHub.load_groups.update(services_resp['groups'])
+        c.JupyterHub.services.extend(services_resp['services'])
 
 
     # The JupyterHub docker image
@@ -355,11 +348,32 @@ postgresql:
   # Provide Postgresql username
   postgresqlUsername: postgres
   # Provide Postgresql password if username is not defined, the default username will have this password
-  postgresqlPostgresPassword: 'postgres123'
+  postgresqlPostgresPassword: postgres123
   # Provide Postgresql password
-  postgresqlPassword: 'postgres123'
+  postgresqlPassword: postgres123
   # Provide in cluster database name
-  postgresqlDatabase: 'illumidesk'
+  postgresqlDatabase: illumidesk
+  # Default existing secret name for postgres passwords
+  existingSecret: 'illumidesk-secret'
+  # Database Server Port
+  service:
+    port: 5432
+
+externalDatabase:
+  # Enables or disables configuration of external Database
+  enabled: false
+  # Default existing secret name for external database password passwords
+  existingSecret: 'illumidesk-secret'
+  # Host name for external database
+  host: ''
+  # Provide external database name
+  database: illumidesk
+  # Database Server Port
+  port: 5432
+  # Database user
+  databaseUser: postgres
+  # Database password
+  databasePassword: postgres123
 
 ## DatadogHQ Agent
 ## https://github.com/DataDog/helm-charts/tree/master/charts/datadog
@@ -467,38 +481,38 @@ illumideskSettings:
   # Enables or disables the illumidesk settings options
   enabled: true
   # The custom authentication type. Should be one of DUMMY, LTI11, LTI13, or AUTH0.
-  custom_auth_type: ""
-  # Internal JupyterHub API URL
-  jupyterhub_api_url: ""
+  customAuthType: "DUMMY"
   # OIDC authorization URL
-  oidc_authorize_url: ""
+  oidcAuthorizeUrl: ""
   # OIDC token URL
-  oidc_token_url: ""
+  oidcTokenUrl: ""
   # OIDC userdata URL
-  oidc_userdata_url: ""
+  oidcUserData: ""
   # OIDC client id
-  oidc_client_id: ""
+  oidcClientId: ""
   # OIDC client secret
-  oidc_client_secret: ""
+  oidcClientSecret: ""
   # OIDC callback URL
-  oidc_callback_url: ""
+  oidcCallbackUrl: ""
   # LTI v1.1 consumer key
-  lti_consumer_key: ""
+  ltiConsumerKey: ""
   # LTI v1.3 client id
-  lti13_client_id: ""
+  lti13ClientId: ""
   # LTI v1.3 endpoint URL
-  lti13_endpoint: ""
+  lti13Endpoint: ""
   # LTI v1.3 authorization URL
-  lti13_authorization_url: ""
+  lti13AuthorizeUrl: ""
   # LTI v1.3 token URL
-  lti13_token_url: ""
+  lti13TokenUrl: ""
   # Postgres host endpoint. If set, both the nbgrader database and the JupyterHub database
   # will use this Postgres host.
   postgresHost: ""
   # Postgres nbgrader username
-  postgres_nbgrader_user: ""
+  postgresGraderUser: "postgres"
   # Postgres JupyterHub username
-  postgres_jupyterhub_user: ""
+  postgresHubUser: "postgres"
+  # external Database Server Host Name
+  externalHost: ""
 ## Grader setup service
 ##
 graderSetupService:
