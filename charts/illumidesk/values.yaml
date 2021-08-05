@@ -504,15 +504,7 @@ illumideskSettings:
   lti13AuthorizeUrl: ""
   # LTI v1.3 token URL
   lti13TokenUrl: ""
-  # Postgres host endpoint. If set, both the nbgrader database and the JupyterHub database
-  # will use this Postgres host.
-  postgresHost: ""
-  # Postgres nbgrader username
-  postgresGraderUser: "postgres"
-  # Postgres JupyterHub username
-  postgresHubUser: "postgres"
-  # external Database Server Host Name
-  externalHost: ""
+
 ## Grader setup service
 ##
 graderSetupService:
@@ -537,3 +529,6 @@ graderSetupService:
   graderMemGuarantee: "2Gi"
   # Provides upperbound for memory that can be allocated to a grader setup service pod
   graderMemLimit: ""
+  # Pull Policy
+  pullPolicy: IfNotPresent
+  graderSpawnerPullPolicy: IfNotPresent
