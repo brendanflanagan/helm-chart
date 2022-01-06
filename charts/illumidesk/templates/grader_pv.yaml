@@ -27,9 +27,8 @@ spec:
           values:
           - illumidesk-oregon-control-plane
 {{ else if .Values.allowNFS.enabled }}
-  storageClassName: ""
-  nfs:
-    server: {{ .Values.allowNFS.server }}
-    path: {{ .Values.allowNFS.path }}
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: {{ .Values.allowNFS.server }}
 {{ end }}
 {{ end }}
