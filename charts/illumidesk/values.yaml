@@ -30,10 +30,51 @@ jupyterhub:
   # JupyterHub's application settings
   # ref: https://github.com/jupyterhub/zero-to-jupyterhub-k8s/blob/master/jupyterhub/values.yaml
   hub:
-
+    # clone custom JupyterHub templates into a volume
+    initContainers:
+      - name: "git-clone-templates"
+        image: "illumidesk/alpine-git:1.0.30"
+        args:
+          - clone
+          - --single-branch
+          - --branch=main
+          - --depth=1
+          - --
+          - https://github.com/illumidesk/jhubui.git
+          - /etc/jupyterhub/custom
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+          - name: custom-templates
+            mountPath: "/etc/jupyterhub/custom"
+    extraVolumes:
+      - name: custom-templates
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: custom-templates
+        mountPath: "/etc/jupyterhub/custom"
+    # Maximum number of concurrent servers that can be active at a time. 0 means that no limit is enforced
+    activeServerLimit: 0
+    # Jupyterhub resources regarding requests for CPU and memory
+    resources:
+      requests:
+        # CPU that is allocated to the hub
+        cpu: "200m"
+        # memory that is allocated to the hub
+        memory: "400Mi"
+      limits:
+        # Max CPU that is allocated to the hub
+        cpu: "400m"
+        # Max memory that is allocated to the hub
+        memory: "800Mi"
+    config:
+    # JupyterHub's database configuration. Defaults to "postgres" since other options, such as "sqlite-pvc",
+    # require additional PVC configuration settings.
+    # ref: https://zero-to-jupyterhub.readthedocs.io/en/stable/resources/reference.html#hub-db
+    db:
       # Database type
       # ref: https://zero-to-jupyterhub.readthedocs.io/en/stable/resources/reference.html#hub-db-type
-    #  type: postgres
+      type: postgres
     # Extra configuration options
     # ref: https://zero-to-jupyterhub.readthedocs.io/en/stable/resources/reference.html#hub-extraconfig
     extraEnv:
@@ -289,7 +330,6 @@ jupyterhub:
       type: ClusterIP
   # Single user server
   singleuser:
-
     # Default CPU Limits and Gurantees
     cpu:
       # Max CPU that can be allocated
@@ -304,8 +344,6 @@ jupyterhub:
     # Single user server extra environment variables
     # ref: https://zero-to-jupyterhub.readthedocs.io/en/stable/resources/reference.html#singleuser-extraenv
     extraEnv:
-      # disables argo workflow in single user notebook
-      ARGO_ENABLED: "false"
       # If yes, Instructs the startup script to change the $NB_USER home directory owner and group to the
       # current value of $NB_UID and $NB_GID.
       CHOWN_HOME: 'yes'
@@ -381,6 +419,17 @@ allowNFS:
   enabled: false
   # Domain for the NFS Server
   server: ''
+  # Specifies local vs network file system
+  type: 'local'
+  # specify mount path
+  path: /
+
+## To test with efs csi driver to persist files for personal workspaces
+##
+allowEFS:
+  enabled: false
+  # Volume Handle for EFS
+  volumeHandle: ''
 
 ## To test with a local file system, enable the following and confirm your instance has /illumidesk-nb-exchange
 ## and /illumidesk-courses directory
@@ -396,7 +445,7 @@ allowLocal:
 ##
 illumideskSettings:
   # Enables or disables the illumidesk settings options
-  enabled: false
+  enabled: true
   # The custom authentication type. Should be one of DUMMY, LTI11, LTI13, or AUTH0.
   customAuthType: "DUMMY"
   # OIDC authorization URL
@@ -464,26 +513,3 @@ graderSetupService:
   graderSpawnerMemLimit: ""
   # Max Storage allocated for Grader PV and PVCss
   graderSpawnerStorage: "2Gi"
-
-
-argo:
-  enabled: false
-  natsService: cluster-resources-nats
-  natsNamespace: kube-system
-  ## Argo events
-  ## ref: https://artifacthub.io/packages/helm/argo/argo-events
-  ##
-  argo-events:
-    # Sets the namespace for the arg-events service. By default
-    # the namespace is fetched from the organization name env var.
-    namespace:
-      valueFrom:
-        configMapKeyRef:
-          name: hub-illumidesk-cm
-          key: ORGANIZATION_NAME
-
-  ## Auto-grading options
-  ##
-  autograding:
-    # Sets the number of concurrent auto-graders.
-    concurrency: "1"

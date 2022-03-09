@@ -2,15 +2,15 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: grader-pvc-{{ .Release.Namespace }}
+  name: shared-pvc-{{ .Release.Namespace }}
   namespace: {{ .Release.Namespace }}
 spec:
 {{ if  .Values.allowLocal.enabled }}
   storageClassName: "local-storage"
-  volumeName: grader-pv-{{ .Release.Namespace }}
+  volumeName: shared-pv-{{ .Release.Namespace }}
 {{ else if .Values.allowNFS.enabled }}
   storageClassName: ""
-  volumeName: grader-pv-{{ .Release.Namespace }}
+  volumeName: shared-pv-{{ .Release.Namespace }}
 {{ else if .Values.allowEFS.enabled }}
   storageClassName: "efs-sc"
 {{ end }}

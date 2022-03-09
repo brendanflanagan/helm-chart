@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: grader-pv-{{ .Release.Namespace }}
+  name: shared-pv-{{ .Release.Namespace }}
 {{ if .Values.allowLocal.enabled }}
   labels:
     type: local
@@ -35,9 +35,7 @@ spec:
   storageClassName: efs-sc
   csi:
     driver: efs.csi.aws.com
-    volumeHandle: "{{ .Values.allowEFS.volumeHandle }}:/illumidesk-courses"
+    volumeHandle: "{{ .Values.allowEFS.volumeHandle }}:/illumidesk-nb-exchange"
 
 {{ end }}
 {{ end }}
-
-
